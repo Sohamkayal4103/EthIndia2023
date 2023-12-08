@@ -6,6 +6,7 @@ import Home from "./pages/Home/Home";
 import CreateDAO from "./pages/CreateDAO/CreateDAO";
 import RegisterUser from "./pages/RegisterUser/RegisterUser";
 import DeployToken from "./pages/DeployToken/DeployToken";
+import Explore from "./pages/Explore/Explore";
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
@@ -45,6 +46,7 @@ function App() {
               <Route path="/create-dao" element={<CreateDAO />} />
               <Route path="/register" element={<RegisterUser />} />
               <Route path="/deploy-token" element={<DeployToken />} />
+              <Route path="/explore" element={<Explore />} />
             </Routes>
           </Router>
         </RainbowKitProvider>
