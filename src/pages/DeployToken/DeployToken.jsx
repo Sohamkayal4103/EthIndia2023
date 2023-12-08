@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Progress,
   Box,
@@ -30,6 +30,7 @@ import {
   ring,
   Badge,
   Code,
+  Center,
 } from "@chakra-ui/react";
 
 import { useToast } from "@chakra-ui/react";
@@ -43,6 +44,7 @@ const DeployToken = () => {
   const [tokenSymbol, setTokenSymbol] = useState("");
   const [totalSupply, setTotalSupply] = useState(0);
   const [justDeployed, setJustDeployed] = useState("");
+  const [access, setAccess] = useState("loading");
 
   const createToken = async () => {
     if (window.ethereum._state.accounts.length !== 0) {
@@ -89,6 +91,35 @@ const DeployToken = () => {
       });
     }
   };
+
+  const checkMembership = async () => {
+    if (window.ethereum._state.accounts.length !== 0) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const userSideContract = new ethers.Contract(
+        "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+        UserSideAbi,
+        signer
+      );
+      const accounts = await provider.listAccounts();
+      const userId = await userSideContract.userWallettoUser(accounts[0]);
+      if (userId == 0) {
+        setAccess("denied");
+      } else {
+        setAccess("granted");
+      }
+    }
+  
+
+  useEffect(() => {
+    checkMembership();
+  }, []);
+
+  if (access == "loading") {
+    return <Center>Loading...</Center>;
+  } else if (access == "denied") {
+    return <Center>Access Denied.. Please sign up into the system</Center>;
+  }
 
   return (
     <>
@@ -141,9 +172,11 @@ const DeployToken = () => {
         >
           Deploy Token
         </Button>
-        <Code colorScheme="yellow" variant="outline">
-          {justDeployed}
-        </Code>
+        <Center>
+          <Code mt={2} colorScheme="yellow" variant="outline">
+            {justDeployed}
+          </Code>
+        </Center>
       </Box>
     </>
   );
