@@ -31,7 +31,8 @@ import {
 } from "@chakra-ui/react";
 
 import { useToast } from "@chakra-ui/react";
-// import { ethers } from "ethers";
+import { ethers } from "ethers";
+import UserSideAbi from "../../src/utils/contractabis/UserSideAbi.json";
 // import { useSigner } from "wagmi";
 
 const UserRegistrationForm = () => {
@@ -41,6 +42,44 @@ const UserRegistrationForm = () => {
   const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
   const [profileImage, setProfileImage] = useState("");
+
+  const handleSubmit = async () => {
+    if (window.ethereum._state.accounts.length !== 0) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+        UserSideAbi,
+        signer
+      );
+      const accounts = await provider.listAccounts();
+      const tx = await contract.createUser(
+        name,
+        email,
+        bio,
+        profileImage,
+        accounts[0]
+      );
+      await tx.wait();
+      toast({
+        title: "User Created",
+        description: "User Created Successfully",
+        status: "success",
+        duration: 1000,
+        isClosable: true,
+        position: "top-right",
+      });
+    } else {
+      toast({
+        title: "User Not Created",
+        description: "User Not Created Successfully",
+        status: "error",
+        duration: 1000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
+  };
   return (
     <>
       <Box
@@ -121,7 +160,7 @@ const UserRegistrationForm = () => {
           colorScheme="purple"
           variant="solid"
           onClick={() => {
-            //  handleSubmit();
+            handleSubmit();
           }}
         >
           Register
