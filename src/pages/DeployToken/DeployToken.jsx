@@ -29,6 +29,7 @@ import {
   Stack,
   ring,
   Badge,
+  Code,
 } from "@chakra-ui/react";
 
 import { useToast } from "@chakra-ui/react";
@@ -140,9 +141,9 @@ const DeployToken = () => {
         >
           Deploy Token
         </Button>
-        <Badge colorScheme="green" variant="outline">
+        <Code colorScheme="yellow" variant="outline">
           {justDeployed}
-        </Badge>
+        </Code>
       </Box>
     </>
   );
