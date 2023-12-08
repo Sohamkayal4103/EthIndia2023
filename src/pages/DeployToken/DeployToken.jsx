@@ -109,7 +109,7 @@ const DeployToken = () => {
         setAccess("granted");
       }
     }
-  
+  };
 
   useEffect(() => {
     checkMembership();
