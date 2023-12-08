@@ -1,4 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useContext } from "react";
+import { AuthContext } from "../context/auth";
+import Safe, { EthersAdapter } from "@safe-global/protocol-kit";
+import { GelatoRelayPack } from "@safe-global/relay-kit";
 import {
   Progress,
   Box,
@@ -43,6 +46,8 @@ const UserRegistrationForm = () => {
   const [bio, setBio] = useState("");
   const [profileImage, setProfileImage] = useState("");
 
+  const { safeAuthPack, safeAuthSignInResponse } = useContext(AuthContext);
+
   const handleSubmit = async () => {
     if (window.ethereum._state.accounts.length !== 0) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -70,10 +75,74 @@ const UserRegistrationForm = () => {
         position: "top-right",
       });
     } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = new ethers.Wallet(
+        import.meta.env.VITE_OWNER_1_PRIVATE_KEY,
+        provider
+      );
+
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
+      });
+
+      console.log("ethAdapter", ethAdapter);
+
+      const safe = await Safe.create({
+        ethAdapter,
+        safeAddress: "0x86Cb401afF6A25A335c440C25954A70b3c232C27",
+      });
+
+      console.log("protocolKit", safe);
+
+      const relaykit = new GelatoRelayPack(import.meta.env.VITE_GELATO_API_KEY);
+
+      const contract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      const data = contract.interface.encodeFunctionData(
+        "createUser(string memory _userName,string memory _userEmail,string memory _description,string memory _profileImage,address _userWalletAddress)",
+        [name, email, bio, profileImage, safeAuthSignInResponse?.eoa]
+      );
+
+      const transactions = [
+        {
+          to: "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+          data: data,
+          value: 0,
+        },
+      ];
+
+      const options = { isSponsored: true };
+
+      const safeTransaction = await relaykit.createRelayedTransaction({
+        safe,
+        transactions,
+        options,
+      });
+
+      const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+
+      const response = await relaykit.executeRelayTransaction(
+        signedSafeTransaction,
+        safe,
+        options
+      );
+
+      console.log(
+        `Relay Transaction Task ID: https://relay.gelato.digital/tasks/status/${response.taskId}`
+      );
+
       toast({
-        title: "User Not Created",
-        description: "User Not Created Successfully",
-        status: "error",
+        title: "Transaction Submitted Successfully",
+        description: "Waiting for some time to get changes reflected",
+        status: "success",
         duration: 1000,
         isClosable: true,
         position: "top-right",
