@@ -15,7 +15,8 @@ import {
 } from "@chakra-ui/react";
 
 import { useToast } from "@chakra-ui/react";
-// import { ethers } from "ethers";
+import UserSideAbi from "../../src/utils/contractabis/UserSideAbi.json";
+import { ethers } from "ethers";
 // import { useSigner } from "wagmi";
 
 const DAORegistrationForm = () => {
@@ -26,6 +27,45 @@ const DAORegistrationForm = () => {
   const [desc, setdesc] = useState("");
   const [tokenAddress, settokenAddress] = useState("");
   const [daovisibility, setdaoVisibility] = useState(false);
+
+  const handleSubmit = async () => {
+    if (window.ethereum._state.accounts.length !== 0) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+        UserSideAbi,
+        signer
+      );
+      const accounts = await provider.listAccounts();
+      const tx = await contract.createDao(
+        name,
+        desc,
+        threshholdToken,
+        tokenAddress,
+        daovisibility,
+        accounts[0]
+      );
+      await tx.wait();
+      toast({
+        title: "DAO Registered",
+        description: "Your DAO has been registered",
+        status: "success",
+        duration: 1000,
+        isClosable: true,
+        position: "top-right",
+      });
+    } else {
+      toast({
+        title: "DAO Not Registered",
+        description: "Your DAO has not been registered",
+        status: "error",
+        duration: 1000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
+  };
   return (
     <>
       <Box
@@ -58,7 +98,6 @@ const DAORegistrationForm = () => {
             </FormLabel>
             <Input
               id="threshholdToken"
-              type="threshholdToken"
               placeholder="Minimum tokens required to join DAO"
               autoComplete="email"
               onChange={(e) => setthreshholdToken(e.target.value)}
@@ -76,7 +115,7 @@ const DAORegistrationForm = () => {
               DAO Description
             </FormLabel>
             <Textarea
-              placeholder="Write a short desc for DAO"
+              placeholder="Write a short description for DAO"
               rows={3}
               shadow="sm"
               focusBorderColor="brand.400"
@@ -97,7 +136,7 @@ const DAORegistrationForm = () => {
               onChange={(e) => settokenAddress(e.target.value)}
             />
           </FormControl>
-          <FormControl mr="5%" mt="4%">
+          <FormControl mr="5%">
             <FormLabel htmlFor="diabetes" fontWeight={"normal"}>
               DAO Visibliity
             </FormLabel>
