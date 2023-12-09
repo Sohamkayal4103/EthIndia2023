@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import UserSideAbi from "../../utils/contractabis/UserSideAbi.json";
+import GovernanceTokenAbi from "../../utils/contractabis/GovernanceTokenAbi.json";
 import {
   Progress,
   Box,
@@ -53,17 +54,36 @@ const Explore = () => {
       //const accounts = await provider.listAccounts();
       const tempTotal = Number(await userSideContract.totalDaos());
       // console.log(tempTotal);
-      let daoData;
-      for (let i = 0; i < tempTotal; i++) {
+      let daoData,
+        tokenData,
+        governanceTokenContract,
+        govtTokenName,
+        govtTokenSymbol;
+      for (let i = 1; i <= tempTotal; i++) {
         daoData = await userSideContract.daoIdtoDao(i);
-        setDaoArray((prevState) => [...prevState, daoData]);
-        console.log(daoData);
+        governanceTokenContract = new ethers.Contract(
+          daoData.joiningTokenAddress,
+          GovernanceTokenAbi,
+          signer
+        );
+        govtTokenName = await governanceTokenContract.name();
+        govtTokenSymbol = await governanceTokenContract.symbol();
+        //console.log(govtTokenName + " " + govtTokenSymbol);
+        setDaoArray((prevState) => [
+          ...prevState,
+          {
+            daoData: daoData,
+            tokenName: govtTokenName,
+            tokenSymbol: govtTokenSymbol,
+          },
+        ]);
+        //console.log(daoData);
       }
     }
   };
 
   useEffect(() => {
-    getAllDaos();
+    return () => getAllDaos();
   }, []);
 
   return (
@@ -75,10 +95,10 @@ const Explore = () => {
       >
         {daoArray &&
           daoArray
-            .filter((dao) => dao.isprivate == false)
-            .map((dao, index) => (
+            .filter((dao) => dao.daoData.isPrivate === false)
+            .map((dao) => (
               <GridItem rowSpan={1} colSpan={1}>
-                <DAOCard />
+                <DAOCard daoData={dao} />
               </GridItem>
             ))}
       </Grid>
