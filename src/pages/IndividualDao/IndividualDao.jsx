@@ -96,14 +96,14 @@ const IndividualDao = () => {
     onClose: onVoteClose,
   } = useDisclosure();
 
-  //start voting
+  //add new member to dao
   const {
     isOpen: isStartOpen,
     onOpen: onStartOpen,
     onClose: onStartClose,
   } = useDisclosure();
 
-  //end voting
+  //view results
   const {
     isOpen: isEndOpen,
     onOpen: onEndOpen,
@@ -453,6 +453,121 @@ const IndividualDao = () => {
     }
   };
 
+  const [startVotingId, setStartVotingId] = useState(0);
+
+  const startVoting = async (_proposalId) => {
+    if (window?.ethereum?._state?.accounts?.length !== 0) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
+        UserSideAbi,
+        signer
+      );
+      const accounts = await provider.listAccounts();
+      const propInfo = await contract.proposalIdtoproposal(_proposalId);
+      console.log(propInfo);
+      const tx = await contract.openVoting(_proposalId, accounts[0]);
+      console.log(tx);
+      await tx.wait();
+      toast({
+        title: "Congrats! Transaction Complete",
+        description: `Voting Period has started`,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
+  };
+
+  const endVoting = async (_proposalId) => {
+    if (window?.ethereum?._state?.accounts?.length !== 0) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
+        UserSideAbi,
+        signer
+      );
+      const accounts = await provider.listAccounts();
+      const propInfo = await contract.proposalIdtoproposal(_proposalId);
+      console.log(propInfo);
+      const tx = await contract.closeVoting(_proposalId, accounts[0]);
+      await tx.wait();
+      console.log(tx);
+      toast({
+        title: "Congrats! Transaction Complete",
+        description: `Voting Period has ended`,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
+  };
+
+  const [inviteAddress, setInviteAddress] = useState("");
+  const addmembertoDao = async () => {
+    if (window?.ethereum?._state?.accounts?.length !== 0) {
+      console.log(inviteAddress);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
+        UserSideAbi,
+        signer
+      );
+      const accounts = await provider.listAccounts();
+      const tx = await contract.addMembertoDao(
+        daoId,
+        inviteAddress,
+        accounts[0]
+      );
+      await tx.wait();
+      toast({
+        title: "Congrats! Transaction Complete",
+        description: `Invite Successfully sent!`,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
+  };
+
+  const [votingYes, setVotingYes] = useState();
+  const [votingNo, setVotingNo] = useState();
+  const [finalVerdict, setFinalVerdict] = useState("");
+
+  const getVotingResults = async (_proposalId) => {
+    if (window?.ethereum?._state?.accounts?.length !== 0) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
+        UserSideAbi,
+        signer
+      );
+      //const accounts = await provider.listAccounts();
+      const totalYes = Number(await contract.getTotalSupportVotes(_proposalId));
+      const totalNo = Number(
+        await contract.getTotalOppositionVotes(_proposalId)
+      );
+      setVotingYes(totalYes);
+      setVotingNo(totalNo);
+      // console.log(totalYes);
+      // console.log(totalNo);
+      if (totalYes > totalNo) {
+        setFinalVerdict("Proposal Approved");
+      } else if (totalNo < totalYes) {
+        setFinalVerdict("Proposal Rejected");
+      } else {
+        setFinalVerdict("No verdict Passed");
+      }
+    }
+  };
+
   if (access == "loading") {
     return <Center>Loading...</Center>;
   } else if (access == "denied") {
@@ -479,14 +594,8 @@ const IndividualDao = () => {
       )}
 
       {userRole == 1 && (
-        <Button mt="2%" m={2} onClick={() => handleSizeClick2("xl")}>
-          Start Voting{" "}
-        </Button>
-      )}
-
-      {userRole == 1 && (
         <Button mt="2%" m={2} onClick={() => handleSizeClick3("xl")}>
-          End Voting{" "}
+          Add member{" "}
         </Button>
       )}
 
@@ -501,9 +610,11 @@ const IndividualDao = () => {
       >
         <GridItem colSpan={3}>
           <VStack alignItems="flex-start" spacing="20px">
-            <chakra.h2 fontSize="3xl" fontWeight="700">
-              All proposals
-            </chakra.h2>
+            <Center>
+              <chakra.h2 fontSize="3xl" fontWeight="700" ml={2}>
+                All proposals
+              </chakra.h2>
+            </Center>
           </VStack>
         </GridItem>
       </Grid>
@@ -537,6 +648,7 @@ const IndividualDao = () => {
                           <Th>Voting Threshold</Th>
                           <Th>Token Address</Th>
                           <Th>Vote</Th>
+                          <Th>End Voting</Th>
                         </Tr>
                       </Thead>
                       <Tbody>
@@ -574,6 +686,19 @@ const IndividualDao = () => {
                                   Vote Now
                                 </Button>
                               </Td>
+                              {userRole == 1 && (
+                                <Td>
+                                  <Button
+                                    onClick={() => {
+                                      endVoting(
+                                        Number(proposal.proposalInfo.proposalId)
+                                      );
+                                    }}
+                                  >
+                                    End Voting
+                                  </Button>
+                                </Td>
+                              )}
                             </Tr>
                           ))}
                       </Tbody>
@@ -592,6 +717,7 @@ const IndividualDao = () => {
                           <Th>Votin Token</Th>
                           <Th>Voting Threshold</Th>
                           <Th>Token Address</Th>
+                          <Th>Start Voting</Th>
                         </Tr>
                       </Thead>
                       <Tbody>
@@ -617,6 +743,22 @@ const IndividualDao = () => {
                               <Td>
                                 {proposal.proposalInfo.governanceTokenAddress}
                               </Td>
+                              {userRole == 1 && (
+                                <Td>
+                                  <Button
+                                    onClick={() => {
+                                      setStartVotingId(
+                                        Number(proposal.proposalInfo.proposalId)
+                                      );
+                                      startVoting(
+                                        Number(proposal.proposalInfo.proposalId)
+                                      );
+                                    }}
+                                  >
+                                    Start
+                                  </Button>
+                                </Td>
+                              )}
                             </Tr>
                           ))}
                       </Tbody>
@@ -662,7 +804,14 @@ const IndividualDao = () => {
                                 {proposal.proposalInfo.governanceTokenAddress}
                               </Td>
                               <Td>
-                                <Button onClick={handleSizeClick2}>
+                                <Button
+                                  onClick={() => {
+                                    getVotingResults(
+                                      Number(proposal.proposalInfo.proposalId)
+                                    );
+                                    handleSizeClick4();
+                                  }}
+                                >
                                   View Results
                                 </Button>
                               </Td>
@@ -675,7 +824,11 @@ const IndividualDao = () => {
               </TabPanels>
             </Tabs>
           ) : (
-            <Button onClick={loadAllProposals}>Load Proposals</Button>
+            <Center>
+              <Button mt={6} onClick={loadAllProposals}>
+                Load Proposals
+              </Button>
+            </Center>
           )}
         </GridItem>
       </Grid>
@@ -779,6 +932,50 @@ const IndividualDao = () => {
               Authorize & Vote
             </Button>
           </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal isOpen={isStartOpen} onClose={onStartClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Invite member to dao:</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input
+              type="text"
+              placeholder="Add wallet address of the user you want to invite to DAO"
+              onChange={(e) => {
+                setInviteAddress(e.target.value);
+              }}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={addmembertoDao}>Submit</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal isOpen={isEndOpen} onClose={onEndClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Voting Results: </ModalHeader>
+          <ModalBody>
+            <TableContainer>
+              <Table variant="simple">
+                <Tr>
+                  <Td>Yes</Td>
+                  <Td isNumeric>{votingYes}</Td>
+                </Tr>
+                <Tr>
+                  <Td>No</Td>
+                  <Td isNumeric>{votingNo}</Td>
+                </Tr>
+                <Tr>
+                  <Td>Final Verdict</Td>
+                  <Td isNumeric>{finalVerdict}</Td>
+                </Tr>
+              </Table>
+            </TableContainer>
+          </ModalBody>
+          <ModalCloseButton />
         </ModalContent>
       </Modal>
     </div>
