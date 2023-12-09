@@ -210,7 +210,7 @@ const DAORegistrationForm = () => {
           </FormControl>
           <FormControl mr="5%">
             <FormLabel htmlFor="diabetes" fontWeight={"normal"}>
-              DAO Visibliity
+              Is DAO private?
             </FormLabel>
             <RadioGroup defaultValue="1">
               <Stack spacing={5} direction="row">
