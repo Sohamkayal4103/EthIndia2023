@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useContext } from "react";
 import {
   Box,
   Button,
@@ -13,7 +13,9 @@ import {
   FormHelperText,
   Stack,
 } from "@chakra-ui/react";
-
+import { AuthContext } from "../context/auth";
+import Safe, { EthersAdapter } from "@safe-global/protocol-kit";
+import { GelatoRelayPack } from "@safe-global/relay-kit";
 import { useToast } from "@chakra-ui/react";
 import UserSideAbi from "../../src/utils/contractabis/UserSideAbi.json";
 import { ethers } from "ethers";
@@ -28,8 +30,10 @@ const DAORegistrationForm = () => {
   const [tokenAddress, settokenAddress] = useState("");
   const [daovisibility, setdaoVisibility] = useState(false);
 
+  const { safeAuthPack, safeAuthSignInResponse } = useContext(AuthContext);
+
   const handleSubmit = async () => {
-    if (window.ethereum._state.accounts.length !== 0) {
+    if (window?.ethereum?._state?.accounts?.length !== 0) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
@@ -56,11 +60,79 @@ const DAORegistrationForm = () => {
         position: "top-right",
       });
     } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+      console.log("signer", signer);
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
+      });
+
+      const safeAddress = safeAuthSignInResponse?.safes[0];
+
+      const safe = await Safe.create({
+        ethAdapter,
+        safeAddress: safeAddress,
+      });
+
+      console.log("protocolKit", safe);
+
+      const relaykit = new GelatoRelayPack(import.meta.env.VITE_GELATO_API_KEY);
+
+      const contract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      const data = contract.interface.encodeFunctionData(
+        "createDao(string memory _daoName,string memory _daoDescription,uint256 _joiningThreshold,address _joiningTokenAddress,bool _isPrivate,address _userWalletAddress)",
+        [
+          name,
+          desc,
+          threshholdToken,
+          tokenAddress,
+          daovisibility,
+          safeAuthSignInResponse?.eoa,
+        ]
+      );
+
+      const transactions = [
+        {
+          to: "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+          data: data,
+          value: 0,
+        },
+      ];
+
+      const options = { isSponsored: true };
+
+      const safeTransaction = await relaykit.createRelayedTransaction({
+        safe,
+        transactions,
+        options,
+      });
+
+      const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+
+      const response = await relaykit.executeRelayTransaction(
+        signedSafeTransaction,
+        safe,
+        options
+      );
+
+      console.log(
+        `Relay Transaction Task ID: https://relay.gelato.digital/tasks/status/${response.taskId}`
+      );
+
       toast({
-        title: "DAO Not Registered",
-        description: "Your DAO has not been registered",
-        status: "error",
-        duration: 1000,
+        title: "Request for DAO registration received",
+        description: "Transaction will take some time to complete",
+        status: "success",
+        duration: 4000,
         isClosable: true,
         position: "top-right",
       });
@@ -168,7 +240,7 @@ const DAORegistrationForm = () => {
           colorScheme="purple"
           variant="solid"
           onClick={() => {
-            //  handleSubmit();
+            handleSubmit();
           }}
         >
           Register DAO
