@@ -48,6 +48,8 @@ const UserRegistrationForm = () => {
 
   const { safeAuthPack, safeAuthSignInResponse } = useContext(AuthContext);
 
+  console.log("safeAuthSignInResponse", safeAuthSignInResponse?.safes);
+
   const handleSubmit = async () => {
     if (window.ethereum._state.accounts.length !== 0) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -79,11 +81,13 @@ const UserRegistrationForm = () => {
         safeAuthPack?.getProvider()
       );
 
-      const signer = new ethers.Wallet(
-        import.meta.env.VITE_OWNER_1_PRIVATE_KEY,
-        provider
-      );
+      // const signer = new ethers.Wallet(
+      //   import.meta.env.VITE_OWNER_1_PRIVATE_KEY,
+      //   provider
+      // );
 
+      const signer = provider.getSigner();
+      console.log("signer", signer);
       const ethAdapter = new EthersAdapter({
         ethers,
         signerOrProvider: signer,
@@ -91,9 +95,11 @@ const UserRegistrationForm = () => {
 
       console.log("ethAdapter", ethAdapter);
 
+      const safeAddress = safeAuthSignInResponse?.safes[0];
+
       const safe = await Safe.create({
         ethAdapter,
-        safeAddress: "0x86Cb401afF6A25A335c440C25954A70b3c232C27",
+        safeAddress: safeAddress,
       });
 
       console.log("protocolKit", safe);
