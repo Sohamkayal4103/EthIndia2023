@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Flex,
   Box,
@@ -10,11 +10,16 @@ import {
   Badge,
   useToast,
 } from "@chakra-ui/react";
+import { AuthContext } from "../context/auth";
 import { ethers } from "ethers";
 import UserSideAbi from "../utils/contractabis/UserSideAbi.json";
 
+import Safe, { EthersAdapter } from "@safe-global/protocol-kit";
+import { GelatoRelayPack } from "@safe-global/relay-kit";
+
 const DAOCard = ({ daoData }) => {
   const toast = useToast();
+  const { safeAuthPack, safeAuthSignInResponse } = useContext(AuthContext);
 
   const joinDao = async () => {
     if (window.ethereum._state.accounts.length !== 0) {
@@ -38,14 +43,77 @@ const DAOCard = ({ daoData }) => {
         position: "top-right",
       });
     } else {
-      toast({
-        title: "Error",
-        description: "Please connect your wallet",
-        status: "error",
-        duration: 1000,
-        isClosable: true,
-        position: "top-right",
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+      console.log("signer", signer);
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
       });
+
+      const safeAddress = safeAuthSignInResponse?.safes[0];
+
+      const safe = await Safe.create({
+        ethAdapter,
+        safeAddress: safeAddress,
+      });
+
+      console.log("protocolKit", safe);
+
+      const relaykit = new GelatoRelayPack(import.meta.env.VITE_GELATO_API_KEY);
+
+      const contract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      //joinDao(uint256 _daoId, address _callerWalletAddress)
+
+      const data = contract.interface.encodeFunctionData(
+        "joinDao(uint256 _daoId, address _callerWalletAddress)",
+        [daoData.daoData.daoId, safeAuthSignInResponse?.eoa]
+      );
+
+      const transactions = [
+        {
+          to: "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+          data: data,
+          value: 0,
+        },
+      ];
+
+      const options = { isSponsored: true };
+
+      const safeTransaction = await relaykit.createRelayedTransaction({
+        safe,
+        transactions,
+        options,
+      });
+
+      const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+
+      const response = await relaykit.executeRelayTransaction(
+        signedSafeTransaction,
+        safe,
+        options
+      );
+
+      console.log(
+        `Relay Transaction Task ID: https://relay.gelato.digital/tasks/status/${response.taskId}`
+      );
+
+      // toast({
+      //   title: "Join DAO request successful",
+      //   description: "Transaction will take a little time to proceed",
+      //   status: "success",
+      //   duration: 1000,
+      //   isClosable: true,
+      //   position: "top-right",
+      // });
     }
   };
 
