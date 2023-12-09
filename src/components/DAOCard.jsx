@@ -10,7 +10,7 @@ import {
   Badge,
 } from "@chakra-ui/react";
 
-const DAOCard = () => {
+const DAOCard = ({ daoData }) => {
   return (
     <Flex
       maxW="lg"
@@ -25,32 +25,32 @@ const DAOCard = () => {
     >
       <Box flex="1">
         <Heading size="md" mb="2">
-          Dao Title
+          {daoData.daoData.daoName}
         </Heading>
         <Text fontSize="sm" color="gray.600" mb="4">
-          Dao Description
+          {daoData.daoData.daoDescription}
         </Text>
         <Text color="gray.400">
+          Token Required:{" "}
           <Badge colorScheme="green" mr="2" p="1">
-            Approved
+            {daoData.tokenName}
           </Badge>
-          Stakeholder Status
         </Text>
         <Text color="gray.400">
+          Token Symbol:{" "}
           <Badge colorScheme="green" mr="2" p="1">
-            Approved
+            {daoData.tokenSymbol}
           </Badge>
-          Notary Status
         </Text>
         <Text color="gray.400" mb="3">
+          Joining Threshold:{" "}
           <Badge colorScheme="green" mr="2" p="1">
-            Approved
+            {Number(daoData.daoData.joiningThreshold)} {daoData.tokenSymbol}
           </Badge>
-          Final Status
         </Text>
 
         <Button color="teal" isExternal mt="12">
-          View Document
+          Join DAO
         </Button>
       </Box>
     </Flex>
