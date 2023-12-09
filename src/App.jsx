@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home/Home";
 import CreateDAO from "./pages/CreateDAO/CreateDAO";
 import RegisterUser from "./pages/RegisterUser/RegisterUser";
+import DAOStorage from "./pages/DAOStorage/DAOStorage";
 import DeployToken from "./pages/DeployToken/DeployToken";
 import Explore from "./pages/Explore/Explore";
 import IndividualDao from "./pages/IndividualDao/IndividualDao";
@@ -16,12 +17,12 @@ import {
   darkTheme,
 } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { filecoinCalibration } from "wagmi/chains";
+import { filecoinCalibration, sepolia } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 
 const { chains, publicClient } = configureChains(
-  [filecoinCalibration],
+  [filecoinCalibration, sepolia],
   [
     alchemyProvider({ apiKey: import.meta.env.VITE_ALCHEMY_ID }),
     publicProvider(),
@@ -55,6 +56,7 @@ function App() {
               <Route path="/explore" element={<Explore />} />
               <Route path="/dao/:daoId" element={<IndividualDao />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/dao/:daoId/storage" element={<DAOStorage />} />
             </Routes>
           </Router>
         </RainbowKitProvider>

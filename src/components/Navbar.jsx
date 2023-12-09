@@ -68,6 +68,18 @@ export default function Navbar() {
                 </Button>
               </Link>
 
+              <Link to="/deploy-token">
+                <Button w="full" variant="ghost">
+                  Deploy Token
+                </Button>
+              </Link>
+
+              <Link to="/explore">
+                <Button w="full" variant="ghost">
+                  Explore
+                </Button>
+              </Link>
+
               <Button onClick={toggleColorMode}>
                 {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
               </Button>
