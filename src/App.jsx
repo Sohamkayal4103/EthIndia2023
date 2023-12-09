@@ -9,7 +9,11 @@ import DeployToken from "./pages/DeployToken/DeployToken";
 import Explore from "./pages/Explore/Explore";
 import IndividualDao from "./pages/IndividualDao/IndividualDao";
 import "@rainbow-me/rainbowkit/styles.css";
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import {
+  getDefaultWallets,
+  RainbowKitProvider,
+  darkTheme,
+} from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import { filecoinCalibration } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
@@ -39,7 +43,7 @@ function App() {
   return (
     <AuthProvider>
       <WagmiConfig config={wagmiConfig}>
-        <RainbowKitProvider chains={chains}>
+        <RainbowKitProvider chains={chains} theme={darkTheme()}>
           <Router>
             <Navbar />
             <Routes>
