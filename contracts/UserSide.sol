@@ -151,7 +151,7 @@ contract UserSide {
             creatorId,
             _daoName,
             _daoDescription,
-            _joiningThreshold,
+            _joiningThreshold * 1000000000000000000,
             _joiningTokenAddress,
             _isPrivate
         );
@@ -180,7 +180,7 @@ contract UserSide {
             tempCreatorId,
             _daoName,
             _daoDescription,
-            _joiningThreshold,
+            _joiningThreshold * 1000000000000000000,
             _joiningTokenAddress,
             _isPrivate
         );
@@ -400,5 +400,9 @@ contract UserSide {
         uint256 _index
     ) public view returns (uint256) {
         return proposalIdtoOpposers[_proposalId][_index];
+    }
+
+    function getTotalAssociatedDaos(uint256 _userId) public view returns(uint256) {
+        return userIdtoDaoId[_userId].length;
     }
 }
