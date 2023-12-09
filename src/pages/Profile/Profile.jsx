@@ -82,7 +82,7 @@ const Profile = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const userSideContract = new ethers.Contract(
-        "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
         UserSideAbi,
         signer
       );
@@ -107,11 +107,11 @@ const Profile = () => {
   //       CreateGovernanceTokenAbi,
   //       signer
   //     );
-      // const userSideContract = new ethers.Contract(
-      //   "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
-      //   UserSideAbi,
-      //   signer
-      // );
+  // const userSideContract = new ethers.Contract(
+  //   "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+  //   UserSideAbi,
+  //   signer
+  // );
   //     const accounts = await provider.listAccounts();
   //     console.log(userSideContract);
   //     const userId = await userSideContract.userWallettoUser(accounts[0]);
@@ -142,21 +142,20 @@ const Profile = () => {
   //   }
   // };
 
-
-  const getAssociatedDaos = async() => {
+  const getAssociatedDaos = async () => {
     if (window.ethereum._state.accounts.length !== 0) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const userSideContract = new ethers.Contract(
-        "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
         UserSideAbi,
         signer
       );
       const accounts = await provider.listAccounts();
       const tempuserId = await userSideContract.userWallettoId(accounts[0]);
-      const totalDaos = await userSideContract
+      const totalDaos = await userSideContract;
     }
-  }
+  };
 
   return (
     <div>

@@ -55,12 +55,12 @@ const DeployToken = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const createTokenContract = new ethers.Contract(
-        "0xCBfF4BEBa4A391B952e0D898163ada24967f6ffB",
+        "0x525dfb5921F22de7305F062A31b0A43ad0B9e1D3",
         CreateGovernanceTokenAbi,
         signer
       );
       const userSideContract = new ethers.Contract(
-        "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
         UserSideAbi,
         signer
       );
@@ -179,7 +179,7 @@ const DeployToken = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const userSideContract = new ethers.Contract(
-        "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
         UserSideAbi,
         signer
       );

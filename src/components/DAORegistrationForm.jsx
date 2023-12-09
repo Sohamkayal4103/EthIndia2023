@@ -37,7 +37,7 @@ const DAORegistrationForm = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
-        "0x0e339de1df4e7f4747Cc44aC5c13eF2B228E2bC2",
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
         UserSideAbi,
         signer
       );

@@ -26,7 +26,7 @@ const DAOCard = ({ daoData }) => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
-        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        "0x098d5Ba8b28ed0DeBDcC2A95e91a801B490Cff21",
         UserSideAbi,
         signer
       );
