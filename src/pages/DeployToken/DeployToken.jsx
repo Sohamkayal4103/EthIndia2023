@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
+import Safe, { EthersAdapter } from "@safe-global/protocol-kit";
+import { GelatoRelayPack } from "@safe-global/relay-kit";
 import {
   Progress,
   Box,
@@ -32,7 +34,7 @@ import {
   Code,
   Center,
 } from "@chakra-ui/react";
-
+import { AuthContext } from "../../context/auth";
 import { useToast } from "@chakra-ui/react";
 import { ethers } from "ethers";
 import CreateGovernanceTokenAbi from "../../utils/contractabis/CreateGovernanceTokenAbi.json";
@@ -45,6 +47,8 @@ const DeployToken = () => {
   const [totalSupply, setTotalSupply] = useState(0);
   const [justDeployed, setJustDeployed] = useState("");
   const [access, setAccess] = useState("loading");
+
+  const { safeAuthPack, safeAuthSignInResponse } = useContext(AuthContext);
 
   const createToken = async () => {
     if (window.ethereum._state.accounts.length !== 0) {
@@ -89,6 +93,84 @@ const DeployToken = () => {
         isClosable: true,
         position: "top-right",
       });
+    } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
+      });
+
+      const safeAddress = safeAuthSignInResponse?.safes[0];
+
+      const safe = await Safe.create({
+        ethAdapter,
+        safeAddress: safeAddress,
+      });
+
+      const relaykit = new GelatoRelayPack(import.meta.env.VITE_GELATO_API_KEY);
+
+      const userSideContract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      const userId = await userSideContract.userWallettoUser(
+        safeAuthSignInResponse?.eoa
+      );
+
+      const createTokenContract = new ethers.Contract(
+        "0x9f2e5E10c5A71285e16255Ca3Ad346e5311f2419",
+        CreateGovernanceTokenAbi,
+        signer
+      );
+
+      const data = createTokenContract.interface.encodeFunctionData(
+        "deployToken(string memory _tokenName,string memory _tokenSymbol,uint256 _totalSupply,uint256 _userId)",
+        [tokenName, tokenSymbol, totalSupply, userId]
+      );
+
+      const transactions = [
+        {
+          to: "0x9f2e5E10c5A71285e16255Ca3Ad346e5311f2419",
+          data: data,
+          value: 0,
+        },
+      ];
+
+      const options = { isSponsored: true };
+
+      const safeTransaction = await relaykit.createRelayedTransaction({
+        safe,
+        transactions,
+        options,
+      });
+
+      const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+
+      const response = await relaykit.executeRelayTransaction(
+        signedSafeTransaction,
+        safe,
+        options
+      );
+
+      console.log(
+        `Relay Transaction Task ID: https://relay.gelato.digital/tasks/status/${response.taskId}`
+      );
+
+      toast({
+        title: "Transaction Submitted Successfully",
+        description: "Waiting for some time to get changes reflected",
+        status: "success",
+        duration: 1000,
+        isClosable: true,
+        position: "top-right",
+      });
     }
   };
 
@@ -108,8 +190,31 @@ const DeployToken = () => {
       } else {
         setAccess("granted");
       }
+    } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+
+      const userSideContract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      const userId = await userSideContract.userWallettoUser(
+        safeAuthSignInResponse?.eoa
+      );
+      if (userId == 0) {
+        setAccess("denied");
+      } else {
+        setAccess("granted");
+      }
     }
   };
+
+  console.log(justDeployed);
 
   useEffect(() => {
     checkMembership();
