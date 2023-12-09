@@ -16,9 +16,10 @@ import {
   Center,
   Tooltip,
   useToast,
+  Flex,
 } from "@chakra-ui/react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { CopyIcon } from "@chakra-ui/icons";
+import { CopyIcon, ArrowForwardIcon } from "@chakra-ui/icons";
 
 const Home = () => {
   const toast = useToast();
@@ -153,18 +154,51 @@ const Home = () => {
             <p>Or</p>
             <Center marginTop={5}>
               {safeAuthSignInResponse?.eoa ? (
-                <>
-                  <Button onClick={logout}>
-                    {safeAuthSignInResponse?.eoa.slice(0, 4)}...
-                    {safeAuthSignInResponse?.eoa.slice(38, 42)}
-                  </Button>
-                  <CopyToClipboard
-                    text={safeAuthSignInResponse?.eoa}
-                    onCopy={() => info()}
-                  >
-                    <CopyIcon />
-                  </CopyToClipboard>
-                </>
+                <Flex flexDir={"column"}>
+                  <div>
+                    <Flex
+                      fexDir={"row"}
+                      justifyContent={"center"}
+                      alignItems={"center"}
+                    >
+                      <Text>EOA </Text>
+                      <ArrowForwardIcon />
+                      <Button onClick={logout}>
+                        {safeAuthSignInResponse?.eoa.slice(0, 4)}...
+                        {safeAuthSignInResponse?.eoa.slice(38, 42)}
+                      </Button>
+                      <CopyToClipboard
+                        text={safeAuthSignInResponse?.eoa}
+                        onCopy={() => info()}
+                      >
+                        <CopyIcon />
+                      </CopyToClipboard>
+                    </Flex>
+                  </div>
+
+                  {safeAuthSignInResponse?.safes.length === 0 ? null : (
+                    <div style={{ marginTop: "20px" }}>
+                      <Flex
+                        fexDir={"row"}
+                        justifyContent={"center"}
+                        alignItems={"center"}
+                      >
+                        <Text>Safes </Text>
+                        <ArrowForwardIcon />
+                        <Button>
+                          {safeAuthSignInResponse?.safes[0].slice(0, 4)}...
+                          {safeAuthSignInResponse?.safes[0].slice(38, 42)}
+                        </Button>
+                        <CopyToClipboard
+                          text={safeAuthSignInResponse?.eoa}
+                          onCopy={() => info()}
+                        >
+                          <CopyIcon />
+                        </CopyToClipboard>
+                      </Flex>
+                    </div>
+                  )}
+                </Flex>
               ) : (
                 <Button onClick={login}>Sign In with Google</Button>
               )}
