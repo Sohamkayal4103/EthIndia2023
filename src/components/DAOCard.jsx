@@ -165,6 +165,11 @@ const DAOCard = ({ daoData }) => {
         >
           Join DAO
         </Button>
+        <Button color="teal" isExternal mt="12" ml="2">
+          <Link href={`http://localhost:3000/dao/${daoData.daoData.daoId}`}>
+            View DAO
+          </Link>
+        </Button>
       </Box>
     </Flex>
   );
