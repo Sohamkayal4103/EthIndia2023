@@ -43,6 +43,7 @@ import {
   TabPanels,
   Tab,
   TabPanel,
+  Image,
 } from "@chakra-ui/react";
 import { useToast } from "@chakra-ui/react";
 import UserSideAbi from "../../utils/contractabis/UserSideAbi.json";
@@ -177,6 +178,8 @@ const Profile = () => {
             </VStack>
           </GridItem>
         </Grid>
+        <Divider mt={12} mb={12} />
+        <Image src={`https://gateway.lighthouse.storage/ipfs/${userImg}`} />
         <Divider mt={12} mb={12} />
         <Grid
           templateColumns={{
