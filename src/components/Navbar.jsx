@@ -48,7 +48,7 @@ export default function Navbar() {
             ml="2"
             color="brand.00"
           >
-            <Link to="/">ETHIndia</Link>
+            <Link to="/">SimplyDao</Link>
           </HStack>
           <Flex alignItems={"center"}>
             <HStack

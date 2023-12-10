@@ -2,6 +2,7 @@ import React, { useState, useRef, useContext } from "react";
 import { AuthContext } from "../context/auth";
 import Safe, { EthersAdapter } from "@safe-global/protocol-kit";
 import { GelatoRelayPack } from "@safe-global/relay-kit";
+import lighthouse from "@lighthouse-web3/sdk";
 import {
   Progress,
   Box,
@@ -155,6 +156,24 @@ const UserRegistrationForm = () => {
       });
     }
   };
+  const uploadFile = async (file) => {
+    // Push file to lighthouse node
+    // Both file and folder are supported by upload function
+    // Third parameter is for multiple files, if multiple files are to be uploaded at once make it true
+    // Fourth parameter is the deal parameters, default null
+    const output = await lighthouse.upload(
+      file,
+      import.meta.env.VITE_LIGHTHOUSE_API_KEY,
+      false,
+      null
+    );
+    console.log("File Status:", output);
+
+    console.log(
+      "Visit at https://gateway.lighthouse.storage/ipfs/" + output.data.Hash
+    );
+    setProfileImage(output.data.Hash);
+  };
   return (
     <>
       <Box
@@ -221,10 +240,7 @@ const UserRegistrationForm = () => {
             <FormLabel htmlFor="name" fontWeight={"normal"}>
               Profile Image
             </FormLabel>
-            <Input
-              id="profileImage"
-              onChange={(e) => setProfileImage(e.target.value)}
-            />
+            <Input onChange={(e) => uploadFile(e.target.files)} type="file" />
           </FormControl>
         </SimpleGrid>
         <Button

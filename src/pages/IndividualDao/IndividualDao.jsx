@@ -183,6 +183,71 @@ const IndividualDao = () => {
         isClosable: true,
         position: "top-right",
       });
+    } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+      console.log("signer", signer);
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
+      });
+
+      const safeAddress = safeAuthSignInResponse?.safes[0];
+
+      const safe = await Safe.create({
+        ethAdapter,
+        safeAddress: safeAddress,
+      });
+
+      console.log("protocolKit", safe);
+
+      const relaykit = new GelatoRelayPack(import.meta.env.VITE_GELATO_API_KEY);
+
+      const contract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      console.log(safeAuthSignInResponse?.eoa);
+      console.log(proposalForVote);
+      console.log(userResponse);
+
+      const data = contract.interface.encodeFunctionData(
+        "voteForProposal(uint256 _proposalId,bool _voteFor,address _callerWalletAddress)",
+        [proposalForVote, userResponse, safeAuthSignInResponse?.eoa]
+      );
+
+      const transactions = [
+        {
+          to: "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+          data: data,
+          value: 0,
+        },
+      ];
+
+      const options = { isSponsored: true };
+
+      const safeTransaction = await relaykit.createRelayedTransaction({
+        safe,
+        transactions,
+        options,
+      });
+
+      const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+
+      const response = await relaykit.executeRelayTransaction(
+        signedSafeTransaction,
+        safe,
+        options
+      );
+
+      console.log(
+        `Relay Transaction Task ID: https://relay.gelato.digital/tasks/status/${response.taskId}`
+      );
     }
   };
 
@@ -304,6 +369,54 @@ const IndividualDao = () => {
         signer
       );
       //const accounts = await provider.listAccounts();
+      const totalProposals = Number(
+        await userSideContract.getTotalProposals(BigInt(daoId))
+      );
+      let tempProposalId,
+        tempProposalInfo,
+        governanceTokenContract,
+        tokenSymbol,
+        tokenName;
+      for (let i = 0; i < totalProposals; i++) {
+        tempProposalId = Number(
+          await userSideContract.getDaoProposalId(daoId, i)
+        );
+        tempProposalInfo = await userSideContract.proposalIdtoproposal(
+          tempProposalId
+        );
+        governanceTokenContract = new ethers.Contract(
+          tempProposalInfo.governanceTokenAddress,
+          GovernanceTokenAbi,
+          signer
+        );
+        tokenSymbol = await governanceTokenContract.symbol();
+        tokenName = await governanceTokenContract.name();
+        console.log(tokenSymbol);
+        console.log(tokenName);
+        console.log(tempProposalInfo);
+        setProposalArray((prevState) => [
+          ...prevState,
+          {
+            proposalInfo: tempProposalInfo,
+            tokenName: tokenName,
+            tokenSymbol: tokenSymbol,
+          },
+        ]);
+      }
+      setPropSignal(true);
+    } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+
+      const userSideContract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
       const totalProposals = Number(
         await userSideContract.getTotalProposals(BigInt(daoId))
       );
@@ -478,6 +591,70 @@ const IndividualDao = () => {
         isClosable: true,
         position: "top-right",
       });
+    } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+      console.log("signer", signer);
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
+      });
+
+      const safeAddress = safeAuthSignInResponse?.safes[0];
+
+      const safe = await Safe.create({
+        ethAdapter,
+        safeAddress: safeAddress,
+      });
+
+      console.log("protocolKit", safe);
+
+      const relaykit = new GelatoRelayPack(import.meta.env.VITE_GELATO_API_KEY);
+
+      const contract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      console.log(safeAuthSignInResponse?.eoa);
+      console.log(_proposalId);
+
+      const data = contract.interface.encodeFunctionData(
+        "openVoting(uint256 _proposalId,address _callerWalletAddress)",
+        [_proposalId, safeAuthSignInResponse?.eoa]
+      );
+
+      const transactions = [
+        {
+          to: "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+          data: data,
+          value: 0,
+        },
+      ];
+
+      const options = { isSponsored: true };
+
+      const safeTransaction = await relaykit.createRelayedTransaction({
+        safe,
+        transactions,
+        options,
+      });
+
+      const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+
+      const response = await relaykit.executeRelayTransaction(
+        signedSafeTransaction,
+        safe,
+        options
+      );
+
+      console.log(
+        `Relay Transaction Task ID: https://relay.gelato.digital/tasks/status/${response.taskId}`
+      );
     }
   };
 
@@ -504,6 +681,70 @@ const IndividualDao = () => {
         isClosable: true,
         position: "top-right",
       });
+    } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+      console.log("signer", signer);
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
+      });
+
+      const safeAddress = safeAuthSignInResponse?.safes[0];
+
+      const safe = await Safe.create({
+        ethAdapter,
+        safeAddress: safeAddress,
+      });
+
+      console.log("protocolKit", safe);
+
+      const relaykit = new GelatoRelayPack(import.meta.env.VITE_GELATO_API_KEY);
+
+      const contract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      console.log(safeAuthSignInResponse?.eoa);
+      console.log(_proposalId);
+
+      const data = contract.interface.encodeFunctionData(
+        "closeVoting(uint256 _proposalId,address _callerWalletAddress)",
+        [_proposalId, safeAuthSignInResponse?.eoa]
+      );
+
+      const transactions = [
+        {
+          to: "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+          data: data,
+          value: 0,
+        },
+      ];
+
+      const options = { isSponsored: true };
+
+      const safeTransaction = await relaykit.createRelayedTransaction({
+        safe,
+        transactions,
+        options,
+      });
+
+      const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+
+      const response = await relaykit.executeRelayTransaction(
+        signedSafeTransaction,
+        safe,
+        options
+      );
+
+      console.log(
+        `Relay Transaction Task ID: https://relay.gelato.digital/tasks/status/${response.taskId}`
+      );
     }
   };
 
@@ -533,6 +774,71 @@ const IndividualDao = () => {
         isClosable: true,
         position: "top-right",
       });
+    } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+      console.log("signer", signer);
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: signer,
+      });
+
+      const safeAddress = safeAuthSignInResponse?.safes[0];
+
+      const safe = await Safe.create({
+        ethAdapter,
+        safeAddress: safeAddress,
+      });
+
+      console.log("protocolKit", safe);
+
+      const relaykit = new GelatoRelayPack(import.meta.env.VITE_GELATO_API_KEY);
+
+      const contract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
+      console.log(safeAuthSignInResponse?.eoa);
+      console.log(daoId);
+      console.log(inviteAddress);
+
+      const data = contract.interface.encodeFunctionData(
+        "addMembertoDao(uint256 _daoId,address _userWalletAddress,address _callerWalletAddress)",
+        [daoId, inviteAddress, safeAuthSignInResponse?.eoa]
+      );
+
+      const transactions = [
+        {
+          to: "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+          data: data,
+          value: 0,
+        },
+      ];
+
+      const options = { isSponsored: true };
+
+      const safeTransaction = await relaykit.createRelayedTransaction({
+        safe,
+        transactions,
+        options,
+      });
+
+      const signedSafeTransaction = await safe.signTransaction(safeTransaction);
+
+      const response = await relaykit.executeRelayTransaction(
+        signedSafeTransaction,
+        safe,
+        options
+      );
+
+      console.log(
+        `Relay Transaction Task ID: https://relay.gelato.digital/tasks/status/${response.taskId}`
+      );
     }
   };
 
@@ -550,6 +856,35 @@ const IndividualDao = () => {
         signer
       );
       //const accounts = await provider.listAccounts();
+      const totalYes = Number(await contract.getTotalSupportVotes(_proposalId));
+      const totalNo = Number(
+        await contract.getTotalOppositionVotes(_proposalId)
+      );
+      setVotingYes(totalYes);
+      setVotingNo(totalNo);
+      // console.log(totalYes);
+      // console.log(totalNo);
+      if (totalYes > totalNo) {
+        setFinalVerdict("Proposal Approved");
+      } else if (totalNo < totalYes) {
+        setFinalVerdict("Proposal Rejected");
+      } else {
+        setFinalVerdict("No verdict Passed");
+      }
+    } else {
+      const provider = new ethers.providers.Web3Provider(
+        safeAuthPack?.getProvider()
+      );
+
+      const signer = provider.getSigner();
+      console.log("signer", signer);
+
+      const contract = new ethers.Contract(
+        "0x7919303D9772b331F446e4eD2D1F20d1a9592CDE",
+        UserSideAbi,
+        signer
+      );
+
       const totalYes = Number(await contract.getTotalSupportVotes(_proposalId));
       const totalNo = Number(
         await contract.getTotalOppositionVotes(_proposalId)
